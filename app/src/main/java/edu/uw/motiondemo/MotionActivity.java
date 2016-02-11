@@ -1,6 +1,11 @@
 package edu.uw.motiondemo;
 
+import android.animation.AnimatorInflater;
+import android.animation.AnimatorSet;
+import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
 import android.app.Activity;
+import android.media.JetPlayer;
 import android.support.v4.view.GestureDetectorCompat;
 import android.support.v4.view.MotionEventCompat;
 import android.os.Bundle;
@@ -26,6 +31,10 @@ public class MotionActivity extends Activity {
         view = (DrawingSurfaceView)findViewById(R.id.drawingView);
 
         mDetector = new GestureDetectorCompat(this, new MyGestureListener());
+
+        ValueAnimator animator = ValueAnimator.ofFloat(0.0f, 1.0f);
+        animator.setDuration(1000);
+        animator.start();
     }
 
 
@@ -42,9 +51,28 @@ public class MotionActivity extends Activity {
         switch(action){
             case MotionEvent.ACTION_DOWN:
                 Log.v(TAG,"Finger down!");
-                //shold be synchronized!
-                view.ball.cx = event.getX();
-                view.ball.cy = event.getY();
+
+                //pass in the param-to-change in String and Android will find its setter
+                //ObjectAnimator anim = ObjectAnimator.ofFloat(view.ball, "radius", 100, 200);
+                //anim.setDuration(1000);
+                //anim.setRepeatCount(ValueAnimator.INFINITE);
+                //anim.setRepeatMode(ValueAnimator.REVERSE);
+                //anim.start();
+
+                AnimatorSet radiusAnim = (AnimatorSet) AnimatorInflater.loadAnimator(this, R.animator.animations);
+
+                ObjectAnimator xAnim = ObjectAnimator.ofFloat(view.ball, "x", event.getX());
+                xAnim.setDuration(1000);
+                ObjectAnimator yAnim = ObjectAnimator.ofFloat(view.ball, "x", event.getY());
+                yAnim.setDuration(1500);
+
+                AnimatorSet set = new AnimatorSet();
+                set.playTogether(yAnim, xAnim);
+                set.start();
+
+                //should be synchronized!
+                //view.ball.cx = event.getX();
+                //view.ball.cy = event.getY();
                 return true;
             case MotionEvent.ACTION_UP:
                 return true;
@@ -62,6 +90,7 @@ public class MotionActivity extends Activity {
 
         @Override
         public boolean onDown(MotionEvent e) {
+
             return true; //we've got this
         }
 
@@ -72,7 +101,7 @@ public class MotionActivity extends Activity {
 
             //fling!
             Log.v(TAG, "Fling! "+ velocityX + ", " + velocityY);
-            view.ball.dx = -1*velocityX*scaleFactor;
+            view.ball.dx = velocityX*scaleFactor;
             view.ball.dy = -1*velocityY*scaleFactor;
 
             return true; //we got this
